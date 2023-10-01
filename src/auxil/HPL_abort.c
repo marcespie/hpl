@@ -49,7 +49,6 @@
  */
 #include "hpl.h"
 
-#ifdef STDC_HEADERS
 void HPL_abort
 (
    int                              LINE,
@@ -57,10 +56,6 @@ void HPL_abort
    const char *                     FORM,
    ...                              
 )
-#else
-void HPL_abort( va_alist )
-va_dcl
-#endif
 {
 /* 
  * Purpose
@@ -95,34 +90,23 @@ va_dcl
  * .. Local Variables ..
  */
    va_list                    argptr;
-   char                       cline[128];
-#ifndef STDC_HEADERS
-   int                        LINE;
-   char                       * FORM, * SRNAME;
-#endif
 /* ..
  * .. Executable Statements ..
  */
-#ifdef STDC_HEADERS
-   va_start( argptr, FORM );
-#else
-   va_start( argptr );
-   LINE   = va_arg( argptr, int      );
-   SRNAME = va_arg( argptr, char *   );
-   FORM   = va_arg( argptr, char *   );
-#endif
-   (void) vsprintf( cline, FORM, argptr );
-   va_end( argptr ); 
 /*
  * Display an error message
  */
    if( LINE <= 0 )
-      HPL_fprintf( stderr, "%s %s:\n>>> %s <<< Abort ...\n\n",
-                   "HPL ERROR in function", SRNAME, cline );
+      fprintf( stderr, "%s %s:\n>>> ", 
+         "HPL ERROR in function", SRNAME);
    else
-      HPL_fprintf( stderr, "%s %d %s %s:\n>>> %s <<< Abort ...\n\n",
-                   "HPL ERROR on line", LINE, "of function", SRNAME, cline );
-   exit( 0 );
+      fprintf( stderr, "%s %d %s %s:\n>>> ", 
+      	  "HPL ERROR on line", LINE, "of function", SRNAME);
+   va_start( argptr, FORM );
+   (void) vfprintf( stderr,  FORM, argptr );
+   va_end( argptr ); 
+   HPL_fprintf( stderr, "%s <<< Abort ...\n\n");
+   exit( EXIT_FAILURE );
 /*
  * End of HPL_abort
  */

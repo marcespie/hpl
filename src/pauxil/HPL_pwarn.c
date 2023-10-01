@@ -49,7 +49,6 @@
  */
 #include "hpl.h"
 
-#ifdef STDC_HEADERS
 void HPL_pwarn
 (
    FILE *                           STREAM,
@@ -58,10 +57,6 @@ void HPL_pwarn
    const char *                     FORM,
    ...                              
 )
-#else
-void HPL_pwarn( va_alist )
-va_dcl
-#endif
 {
 /* 
  * Purpose
@@ -100,39 +95,26 @@ va_dcl
  */
    va_list                    argptr;
    int                        rank;
-   char                       cline[128];
-#ifndef STDC_HEADERS
-   FILE                       * STREAM;
-   int                        LINE;
-   char                       * FORM, * SRNAME;
-#endif
 /* ..
  * .. Executable Statements ..
  */
-#ifdef STDC_HEADERS
-   va_start( argptr, FORM );
-#else
-   va_start( argptr );
-   STREAM = va_arg( argptr, FILE * );
-   LINE   = va_arg( argptr, int    );
-   SRNAME = va_arg( argptr, char * );
-   FORM   = va_arg( argptr, char * );
-#endif
-   (void) vsprintf( cline, FORM, argptr );
-   va_end( argptr ); 
 
    MPI_Comm_rank( MPI_COMM_WORLD, &rank );
 /*
  * Display an error message
  */
    if( LINE <= 0 )
-      HPL_fprintf( STREAM, "%s %s %d, %s %s:\n>>> %s <<<\n\n",
+      HPL_fprintf( STREAM, "%s %s %d, %s %s:\n>>> ",
                    "HPL ERROR", "from process #", rank, "in function",
-                   SRNAME, cline );
+                   SRNAME );
    else
-      HPL_fprintf( STREAM, "%s %s %d, %s %d %s %s:\n>>> %s <<<\n\n",
+      HPL_fprintf( STREAM, "%s %s %d, %s %d %s %s:\n>>> ",
                    "HPL ERROR", "from process #", rank, "on line", LINE,
-                   "of function", SRNAME, cline );
+                   "of function", SRNAME );
+   va_start( argptr, FORM );
+   (void) HPL_fprintf( STREAM, FORM, argptr );
+   va_end( argptr ); 
+   HPL_fprintf( STREAM, " <<<\n\n" );
 /*
  * End of HPL_pwarn
  */

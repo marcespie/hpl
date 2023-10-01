@@ -49,7 +49,6 @@
  */
 #include "hpl.h"
 
-#ifdef STDC_HEADERS
 void HPL_warn
 (
    FILE *                           STREAM,
@@ -58,10 +57,6 @@ void HPL_warn
    const char *                     FORM,
    ...                              
 )
-#else
-void HPL_warn( va_alist )
-va_dcl
-#endif
 {
 /* 
  * Purpose
@@ -99,35 +94,23 @@ va_dcl
  * .. Local Variables ..
  */
    va_list                    argptr;
-   char                       cline[128];
-#ifndef STDC_HEADERS
-   FILE                       * STREAM;
-   int                        LINE;
-   char                       * FORM, * SRNAME;
-#endif
 /* ..
  * .. Executable Statements ..
  */
-#ifdef STDC_HEADERS
-   va_start( argptr, FORM );
-#else
-   va_start( argptr );
-   STREAM = va_arg( argptr, FILE * );
-   LINE   = va_arg( argptr, int    );
-   SRNAME = va_arg( argptr, char * );
-   FORM   = va_arg( argptr, char * );
-#endif
-   (void) vsprintf( cline, FORM, argptr );
-   va_end( argptr ); 
 /*
  * Display an error message
  */
    if( LINE <= 0 )
-      HPL_fprintf( STREAM, "%s %s:\n>>> %s <<<\n\n", "HPL ERROR in function",
-                   SRNAME, cline );
+      HPL_fprintf( STREAM, "%s %s:\n>>> ", "HPL ERROR in function", SRNAME );
    else
-      HPL_fprintf( STREAM, "%s %d %s %s:\n>>> %s <<<\n\n",
-                   "HPL ERROR on line", LINE, "of function", SRNAME, cline );
+      HPL_fprintf( STREAM, "%s %d %s %s:\n>>> ",
+                   "HPL ERROR on line", LINE, "of function", SRNAME );
+
+   va_start( argptr, FORM );
+   vfprintf( STREAM, FORM, argptr);
+   va_end( argptr ); 
+
+   HPL_fprintf( STREAM, " <<<\n\n" );
 /*
  * End of HPL_warn
  */
